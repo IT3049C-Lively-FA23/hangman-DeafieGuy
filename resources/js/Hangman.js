@@ -1,117 +1,150 @@
-class Hangman {
-  constructor(_canvas) {
-    if (!_canvas) {
-      throw new Error(`invalid canvas provided`);
+// Hangman.js
+let word = "";
+let guessedLetters = [];
+let wrongGuesses = 0;
+const maxWrongGuesses = 6;
+const canvas = document.getElementById("hangmanCanvas");
+const ctx = canvas.getContext("2d");
+const wordHolder = document.getElementById("wordHolder");
+const guesses = document.getElementById("guesses");
+const resetButton = document.getElementById("resetGame");
+
+function startGame(difficulty) {
+    fetch(`https://it3049c-hangman.fly.dev/?difficulty=${difficulty}`)
+        .then(response => response.json())
+        .then(data => {
+            word = data.word.toUpperCase();
+            guessedLetters = [];
+            wrongGuesses = 0;
+            updateWordDisplay();
+            updateGuessedLetters();
+            resetCanvas();
+            toggleGameVisibility(true);
+        })
+        .catch(error => alert("Error fetching word: " + error));
+}
+
+function updateWordDisplay() {
+    let displayWord = "";
+    for (let letter of word) {
+        if (guessedLetters.includes(letter)) {
+            displayWord += `${letter} `;
+        } else {
+            displayWord += "_ ";
+        }
+    }
+    wordHolder.textContent = displayWord.trim();
+}
+
+function updateGuessedLetters() {
+    guesses.textContent = "Guessed Letters: " + guessedLetters.join(", ");
+}
+
+function resetCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawHangman(0);
+}
+
+function drawHangman(wrongGuesses) {
+    // Simple drawing for Hangman; you can add more parts as needed
+    switch (wrongGuesses) {
+        case 1: drawHead(); break;
+        case 2: drawBody(); break;
+        case 3: drawLeftArm(); break;
+        case 4: drawRightArm(); break;
+        case 5: drawLeftLeg(); break;
+        case 6: drawRightLeg(); break;
+        default: break;
+    }
+}
+
+function drawHead() {
+    ctx.beginPath();
+    ctx.arc(100, 40, 20, 0, Math.PI * 2, true);
+    ctx.stroke();
+}
+
+function drawBody() {
+    ctx.beginPath();
+    ctx.moveTo(100, 60);
+    ctx.lineTo(100, 120);
+    ctx.stroke();
+}
+
+function drawLeftArm() {
+    ctx.beginPath();
+    ctx.moveTo(100, 80);
+    ctx.lineTo(60, 100);
+    ctx.stroke();
+}
+
+function drawRightArm() {
+    ctx.beginPath();
+    ctx.moveTo(100, 80);
+    ctx.lineTo(140, 100);
+    ctx.stroke();
+}
+
+function drawLeftLeg() {
+    ctx.beginPath();
+    ctx.moveTo(100, 120);
+    ctx.lineTo(60, 150);
+    ctx.stroke();
+}
+
+function drawRightLeg() {
+    ctx.beginPath();
+    ctx.moveTo(100, 120);
+    ctx.lineTo(140, 150);
+    ctx.stroke();
+}
+
+function submitGuess(letter) {
+    letter = letter.toUpperCase().trim();
+
+    // Validation
+    if (letter.length === 0 || letter.length > 1 || !/[A-Z]/.test(letter)) {
+        alert("Please enter a valid single letter.");
+        return;
+    }
+    if (guessedLetters.includes(letter)) {
+        alert("You already guessed that letter.");
+        return;
     }
 
-    this.canvas = _canvas;
-    this.ctx = this.canvas.getContext(`2d`);
-  }
+    // Update guessed letters
+    guessedLetters.push(letter);
+    updateGuessedLetters();
 
-  /**
-   * This function takes a difficulty string as a parameter
-   * would use the Fetch API to get a random word from the Hangman
-   * To get an easy word: https://it3049c-hangman.fly.dev?difficulty=easy
-   * To get an medium word: https://it3049c-hangman.fly.dev?difficulty=medium
-   * To get an hard word: https://it3049c-hangman.fly.dev?difficulty=hard
-   * The results is a json object that looks like this:
-   *    { word: "book" }
-   * */
-  getRandomWord(difficulty) {
-    return fetch(
-      `https://it3049c-hangman.fly.dev?difficulty=${difficulty}`
-    )
-      .then((r) => r.json())
-      .then((r) => r.word);
-  }
-
-  /**
-   *
-   * @param {string} difficulty a difficulty string to be passed to the getRandomWord Function
-   * @param {function} next callback function to be called after a word is received from the API.
-   */
-  start(difficulty, next) {
-    // get word and set it to the class's this.word
-    // clear canvas
-    // draw base
-    // reset this.guesses to empty array
-    // reset this.isOver to false
-    // reset this.didWin to false
-  }
-
-  /**
-   *
-   * @param {string} letter the guessed letter.
-   */
-  guess(letter) {
-    // Check if nothing was provided and throw an error if so
-    // Check for invalid cases (numbers, symbols, ...) throw an error if it is
-    // Check if more than one letter was provided. throw an error if it is.
-    // if it's a letter, convert it to lower case for consistency.
-    // check if this.guesses includes the letter. Throw an error if it has been guessed already.
-    // add the new letter to the guesses array.
-    // check if the word includes the guessed letter:
-    //    if it's is call checkWin()
-    //    if it's not call onWrongGuess()
-  }
-
-  checkWin() {
-    // using the word and the guesses array, figure out how many remaining unknowns.
-    // if zero, set both didWin, and isOver to true
-  }
-
-  /**
-   * Based on the number of wrong guesses, this function would determine and call the appropriate drawing function
-   * drawHead, drawBody, drawRightArm, drawLeftArm, drawRightLeg, or drawLeftLeg.
-   * if the number wrong guesses is 6, then also set isOver to true and didWin to false.
-   */
-  onWrongGuess() {}
-
-  /**
-   * This function will return a string of the word placeholder
-   * It will have underscores in the correct number and places of the un-guessed letters.
-   * i.e.: if the word is BOOK, and the letter O has been guessed, this would return _ O O _
-   */
-  getWordHolderText() {
-    return;
-  }
-
-  /**
-   * This function returns a string of all the previous guesses, separated by a comma
-   * This would return something that looks like
-   * (Guesses: A, B, C)
-   * Hint: use the Array.prototype.join method.
-   */
-  getGuessesText() {
-    return ``;
-  }
-
-  /**
-   * Clears the canvas
-   */
-  clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  /**
-   * Draws the hangman base
-   */
-  drawBase() {
-    this.ctx.fillRect(95, 10, 150, 10); // Top
-    this.ctx.fillRect(245, 10, 10, 50); // Noose
-    this.ctx.fillRect(95, 10, 10, 400); // Main beam
-    this.ctx.fillRect(10, 410, 175, 10); // Base
-  }
-
-  drawHead() {}
-
-  drawBody() {}
-
-  drawLeftArm() {}
-
-  drawRightArm() {}
-
-  drawLeftLeg() {}
-
-  drawRightLeg() {}
+    if (word.includes(letter)) {
+        updateWordDisplay();
+        if (!wordHolder.textContent.includes("_")) {
+            alert("Congratulations! You won!");
+        }
+    } else {
+        wrongGuesses++;
+        drawHangman(wrongGuesses);
+        if (wrongGuesses === maxWrongGuesses) {
+            alert("Game Over! The word was: " + word);
+        }
+    }
 }
+
+function toggleGameVisibility(isPlaying) {
+    document.getElementById("startWrapper").classList.toggle("hidden", isPlaying);
+    document.getElementById("gameWrapper").classList.toggle("hidden", !isPlaying);
+}
+
+// Reset game
+resetButton.addEventListener("click", () => {
+    startGame(document.getElementById("difficulty").value);
+    resetButton.classList.add("hidden");
+});
+
+// Handle guess submission
+document.getElementById("guessForm").addEventListener("submit", function (event) {
+    event.preventDefault();
+    const guessInput = document.getElementById("guessInput");
+    submitGuess(guessInput.value);
+    guessInput.value = "";
+});
