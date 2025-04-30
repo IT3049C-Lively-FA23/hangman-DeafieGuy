@@ -1,4 +1,6 @@
 // Hangman.js
+class Hangman {
+    Constructor(_canvas) {
 let word = "";
 let guessedLetters = [];
 let wrongGuesses = 0;
@@ -8,7 +10,8 @@ const ctx = canvas.getContext("2d");
 const wordHolder = document.getElementById("wordHolder");
 const guesses = document.getElementById("guesses");
 const resetButton = document.getElementById("resetGame");
-
+    }
+}
 function startGame(difficulty) {
     fetch(`https://it3049c-hangman.fly.dev/?difficulty=${difficulty}`)
         .then(response => response.json())
